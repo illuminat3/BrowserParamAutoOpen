@@ -1,7 +1,3 @@
-using System;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-
 namespace BrowserParamAutoOpen
 {
     public partial class Form1 : Form
@@ -9,18 +5,21 @@ namespace BrowserParamAutoOpen
         public Form1(string[] args)
         {
             InitializeComponent();
-
-            // Check if a locationString is passed
-            if (args.Length > 0)
-            {
-                string locationString = args[0]; // Capture the locationString
-                DisplayLocation(locationString);
-            }
+            ProcessArguments(args);
+            IPCServer.StartServer(this);
         }
 
-        private void DisplayLocation(string locationString)
+        public void ProcessArguments(string[] args)
         {
-            textBox1.Text = locationString;
+
+            if (this.WindowState == FormWindowState.Minimized)
+            {
+                this.WindowState = FormWindowState.Normal;
+            }
+
+            this.Activate();
+            this.TopMost = true;
+            this.TopMost = false;
         }
     }
 }
