@@ -2,24 +2,19 @@ namespace BrowserParamAutoOpen
 {
     public partial class Form1 : Form
     {
-        public Form1(string[] args)
+        public Form1(string args)
         {
             InitializeComponent();
-            ProcessArguments(args);
-            IPCServer.StartServer(this);
+            textBox1.Text = args;
+            IPCServer.OnArgsReceived += HandleBrowserOpen;
         }
 
-        public void ProcessArguments(string[] args)
+        private void HandleBrowserOpen(object? sender, BrowserOpenEventArgs e)
         {
-
-            if (this.WindowState == FormWindowState.Minimized)
+            Invoke((MethodInvoker)(() =>
             {
-                this.WindowState = FormWindowState.Normal;
-            }
-
-            this.Activate();
-            this.TopMost = true;
-            this.TopMost = false;
+                textBox1.Text = e.Args;
+            }));
         }
     }
 }
