@@ -1,4 +1,5 @@
 ﻿using System.IO.Pipes;
+using System.Web;
 
 namespace BrowserParamAutoOpen
 {
@@ -6,28 +7,22 @@ namespace BrowserParamAutoOpen
     {
         private const string PipeName = "BrowserParamAutoOpenPipe";
 
-        public static void StartServer(Form1 form1)
+        public static event EventHandler<BrowserOpenEventArgs>? OnArgsReceived;
+
+        public static void StartServer()
         {
             Task.Run(() =>
             {
                 while (true)
                 {
-                    using (var pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.In))
-                    {
-                        pipeServer.WaitForConnection();
+                    using var pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.In);
+                    pipeServer.WaitForConnection();
 
-                        using (var reader = new StreamReader(pipeServer))
-                        {
-                            string argsLine = reader.ReadLine();
-                            if (!string.IsNullOrWhiteSpace(argsLine))
-                            {
-                                string[] args = argsLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                form1.Invoke(new Action(() =>
-                                {
-                                    form1.ProcessArguments(args);
-                                }));
-                            }
-                        }
+                    using var reader = new StreamReader(pipeServer);
+                    string? argsLine = reader.ReadLine();
+                    if (!string.IsNullOrWhiteSpace(argsLine))
+                    {
+                        OnArgsReceived?.Invoke(null, new BrowserOpenEventArgs(argsLine));
                     }
                 }
             });
