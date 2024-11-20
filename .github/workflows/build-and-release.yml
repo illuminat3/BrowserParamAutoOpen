@@ -1,0 +1,55 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore Dependencies
+        run: dotnet restore
+        
+      - name: Build the Project
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish Executable
+        run: dotnet publish --configuration Release -r win-x64 --self-contained -o output
+
+      - name: Upload Executable as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: BrowserParamAutoOpen-Exe
+          path: ./output/
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: BrowserParamAutoOpen-Exe
+          
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ./BrowserParamAutoOpen-Exe/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+          name: BrowserParamAutoOpen Release ${{ github.ref_name }}
+          body: |
+            New release for the BrowserParamAutoOpen
